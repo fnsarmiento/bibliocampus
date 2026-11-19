@@ -7,7 +7,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 ## Etapa 1 — Base
 
 ### T-01 — Proyecto backend y framework de tests
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Inicializar `backend/` con Node.js + TypeScript + Express, capas vacías (`controller/`, `service/`, `repository/`, `components/`, `middleware/`), `GET /health`, Vitest + Supertest y `.env.example` sin secretos.
 - **Cubre:** Estructura del plan (`Base`)
