@@ -183,7 +183,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   2. Desde la interfaz se puede registrar usuario, iniciar sesión y visualizar el catálogo con disponibles y solo en sala.
 
 ### T-16 — Pantallas de lector (reservas, préstamos y lista de espera)
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev frontend
 - **Qué hacer:** Pantallas para reservar ejemplar (mostrando fecha límite hábil y avisos de corrimiento), ver cupo ocupado/penalidades/suspensión, cancelar o reactivar reservas desactivadas, renovar préstamos activos y anotarse/confirmar/rechazar lista de espera.
 - **Cubre:** `RN-07` a `RN-27`; `HU-03`, `HU-05`, `HU-06`
