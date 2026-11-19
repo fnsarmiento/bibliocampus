@@ -1,0 +1,37 @@
+import type { Response } from "express";
+import { handleControllerError, UnauthorizedError, ValidationError } from "../domain/errors.js";
+import type { AuthenticatedRequest } from "../middleware/auth.js";
+import type { ReservaService } from "../service/ReservaService.js";
+
+export class ReservaController {
+  constructor(private readonly reservaService: ReservaService) {}
+
+  crear = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.usuario) {
+        throw new UnauthorizedError();
+      }
+      const body = (req.body ?? {}) as Record<string, unknown>;
+      const tituloId = Number(body.tituloId);
+      if (!Number.isInteger(tituloId) || tituloId <= 0) {
+        throw new ValidationError("El campo tituloId es obligatorio.");
+      }
+      const reserva = await this.reservaService.crearReserva(req.usuario, tituloId);
+      res.status(201).json(reserva);
+    } catch (err) {
+      handleControllerError(res, err);
+    }
+  };
+
+  mias = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.usuario) {
+        throw new UnauthorizedError();
+      }
+      const resultado = await this.reservaService.listarMisReservas(req.usuario.id);
+      res.status(200).json(resultado);
+    } catch (err) {
+      handleControllerError(res, err);
+    }
+  };
+}

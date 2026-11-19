@@ -1,22 +1,28 @@
 import type { Client } from "@libsql/client";
 import cors from "cors";
 import express, { type Express } from "express";
+import { CalendarioHabil } from "./components/CalendarioHabil.js";
+import { FakeCorreo, type Correo } from "./components/Correo.js";
 import { SystemReloj, type Reloj } from "./components/Reloj.js";
 import { CatalogoController } from "./controller/CatalogoController.js";
 import { FeriadoController } from "./controller/FeriadoController.js";
+import { ReservaController } from "./controller/ReservaController.js";
 import { UsuarioController } from "./controller/UsuarioController.js";
 import { crearAutenticar, soloBibliotecario } from "./middleware/auth.js";
 import { CatalogoRepository } from "./repository/CatalogoRepository.js";
 import { FeriadoRepository } from "./repository/FeriadoRepository.js";
+import { ReservaRepository } from "./repository/ReservaRepository.js";
 import { SesionRepository } from "./repository/SesionRepository.js";
 import { UsuarioRepository } from "./repository/UsuarioRepository.js";
 import { CatalogoService } from "./service/CatalogoService.js";
 import { FeriadoService } from "./service/FeriadoService.js";
+import { ReservaService } from "./service/ReservaService.js";
 import { UsuarioService } from "./service/UsuarioService.js";
 
 export interface AppDependencies {
   db: Client;
   reloj?: Reloj;
+  correo?: Correo;
 }
 
 /**
@@ -38,6 +44,9 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
 
   if (deps) {
     const reloj = deps.reloj ?? new SystemReloj();
+    const correo = deps.correo ?? new FakeCorreo(reloj);
+    const calendario = new CalendarioHabil();
+
     const usuarioRepo = new UsuarioRepository(deps.db);
     const sesionRepo = new SesionRepository(deps.db);
     const usuarioService = new UsuarioService(usuarioRepo, reloj, sesionRepo);
@@ -69,6 +78,20 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
 
     app.get("/feriados", feriadoController.listar);
     app.post("/feriados", autenticar, soloBibliotecario, feriadoController.cargar);
+
+    const reservaRepo = new ReservaRepository(deps.db);
+    const reservaService = new ReservaService(
+      reservaRepo,
+      catalogoRepo,
+      feriadoRepo,
+      calendario,
+      reloj,
+      correo
+    );
+    const reservaController = new ReservaController(reservaService);
+
+    app.post("/reservas", autenticar, reservaController.crear);
+    app.get("/mis-reservas", autenticar, reservaController.mias);
   }
 
   return app;
