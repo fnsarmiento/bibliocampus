@@ -159,7 +159,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   3. Si el primero de la lista era una reserva `desactivada` (ya habilitada) y no reactiva/confirma en 24 h hábiles, la reserva pasa a `cancelada` definitivamente liberando su cupo y el ejemplar pasa al segundo.
 
 ### T-14 — Reparación de ejemplares y reactivación de reservas
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `PATCH /ejemplares/:ejemplarId/reparacion` y `POST /reservas/:reservaId/reactivar`: al pasar a reparación un ejemplar con reserva confirmada, intenta reasignar otro ejemplar disponible del mismo título (notificando); si no hay otro, pasa la reserva a `desactivada` (manteniendo cupo y orden en `lista_espera`) y envía aviso; al volver a `disponible` dispara la cola para reactivar dentro de las `24 h` hábiles.
 - **Cubre:** `RN-20`, `RN-21`, `RN-24`, `RN-25`, `RN-26`, `RN-27`, `RN-28`; `HU-06`, `HU-07`
