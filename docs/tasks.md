@@ -17,7 +17,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   2. Existen los scripts `dev`, `build` y `test` en `backend/package.json`.
 
 ### T-02 — Base de datos SQLite/Turso, migraciones y restricciones únicas
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Configurar cliente `@libsql/client` (soporte archivo/`:memory:` local y URL/token Turso por `.env`) y migración inicial con las 9 tablas e índices únicos parciales de `docs/plan.md`.
 - **Cubre:** `RN-05`, `RN-12`, `RN-22`
