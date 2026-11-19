@@ -63,6 +63,25 @@ export class ListaEsperaRepository {
     return this.mapEntry(res.rows[0] as Record<string, unknown>);
   }
 
+  async findByReservaDesactivadaId(reservaId: number): Promise<ListaEsperaRecord | null> {
+    const res = await this.db.execute({
+      sql: `
+        SELECT le.*, t.nombre AS titulo_nombre, u.email AS usuario_email, u.rol AS usuario_rol, u.suspendido_hasta
+        FROM lista_espera le
+        INNER JOIN titulo t ON t.id = le.titulo_id
+        INNER JOIN usuario u ON u.id = le.usuario_id
+        WHERE le.reserva_desactivada_id = ?
+        ORDER BY le.id DESC
+        LIMIT 1
+      `,
+      args: [reservaId],
+    });
+    if (res.rows.length === 0) {
+      return null;
+    }
+    return this.mapEntry(res.rows[0] as Record<string, unknown>);
+  }
+
   async listByUsuario(usuarioId: number): Promise<ListaEsperaRecord[]> {
     const res = await this.db.execute({
       sql: `

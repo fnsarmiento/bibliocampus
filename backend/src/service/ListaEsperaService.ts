@@ -146,15 +146,13 @@ export class ListaEsperaService {
     return this.listaEsperaRepo.listByUsuario(usuarioId);
   }
 
-  async confirmarTurno(usuario: UsuarioPublico, esperaId: number): Promise<ReservaRecord> {
-    await this.procesarReservasVencidas();
-
+  private async confirmarEntradaAvisada(
+    usuario: UsuarioPublico,
+    entry: ListaEsperaRecord
+  ): Promise<ReservaRecord> {
     const ahora = this.reloj.now();
     const ahoraIso = ahora.toISOString();
-    const entry = await this.listaEsperaRepo.findById(esperaId);
-    if (!entry) {
-      throw new NotFoundError("Registro de lista de espera no encontrado.");
-    }
+
     if (entry.usuarioId !== usuario.id) {
       throw new ForbiddenError("No podés confirmar el turno de otro usuario.");
     }
@@ -193,6 +191,41 @@ export class ListaEsperaService {
     });
 
     return reserva;
+  }
+
+  async confirmarTurno(usuario: UsuarioPublico, esperaId: number): Promise<ReservaRecord> {
+    await this.procesarReservasVencidas();
+
+    const entry = await this.listaEsperaRepo.findById(esperaId);
+    if (!entry) {
+      throw new NotFoundError("Registro de lista de espera no encontrado.");
+    }
+    return this.confirmarEntradaAvisada(usuario, entry);
+  }
+
+  async confirmarPorReservaDesactivada(
+    usuario: UsuarioPublico,
+    reservaId: number
+  ): Promise<ReservaRecord> {
+    await this.procesarReservasVencidas();
+
+    const reserva = await this.reservaRepo.findById(reservaId);
+    if (!reserva) {
+      throw new NotFoundError("Reserva no encontrada.");
+    }
+    if (reserva.usuarioId !== usuario.id) {
+      throw new ForbiddenError("No podés reactivar la reserva de otro usuario.");
+    }
+    if (reserva.estado !== "desactivada") {
+      throw new ConflictError(`La reserva en estado "${reserva.estado}" no puede reactivarse.`);
+    }
+
+    const entry = await this.listaEsperaRepo.findByReservaDesactivadaId(reservaId);
+    if (!entry || entry.estado !== "avisado") {
+      throw new ConflictError("Todavía no tenés un turno disponible para reactivar esta reserva.");
+    }
+
+    return this.confirmarEntradaAvisada(usuario, entry);
   }
 
   async rechazarTurno(usuario: UsuarioPublico, esperaId: number): Promise<ListaEsperaRecord> {

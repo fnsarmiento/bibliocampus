@@ -22,6 +22,7 @@ import { CatalogoService } from "./service/CatalogoService.js";
 import { FeriadoService } from "./service/FeriadoService.js";
 import { ListaEsperaService } from "./service/ListaEsperaService.js";
 import { PrestamoService } from "./service/PrestamoService.js";
+import { ReparacionService } from "./service/ReparacionService.js";
 import { ReservaService } from "./service/ReservaService.js";
 import { UsuarioService } from "./service/UsuarioService.js";
 
@@ -68,6 +69,7 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
     const catalogoRepo = new CatalogoRepository(deps.db);
     const feriadoRepo = new FeriadoRepository(deps.db);
     const reservaRepo = new ReservaRepository(deps.db);
+    const listaEsperaRepo = new ListaEsperaRepository(deps.db);
 
     const catalogoService = new CatalogoService(catalogoRepo, reloj);
     const feriadoService = new FeriadoService(feriadoRepo);
@@ -79,12 +81,30 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
       reloj,
       correo
     );
-
-    const catalogoController = new CatalogoController(catalogoService, () =>
+    const listaEsperaService = new ListaEsperaService(
+      listaEsperaRepo,
+      reservaRepo,
+      catalogoRepo,
+      feriadoRepo,
+      calendario,
+      reloj,
+      correo,
+      () => reservaService.procesarVencimientos()
+    );
+    reservaService.setListaEsperaProcessor((titulosLiberados) =>
+      listaEsperaService.procesarVencimientosYAsignar(titulosLiberados)
+    );
+    const reparacionService = new ReparacionService(catalogoRepo, correo, () =>
       reservaService.procesarVencimientos()
     );
+
+    const catalogoController = new CatalogoController(
+      catalogoService,
+      () => reservaService.procesarVencimientos(),
+      reparacionService
+    );
     const feriadoController = new FeriadoController(feriadoService);
-    const reservaController = new ReservaController(reservaService);
+    const reservaController = new ReservaController(reservaService, listaEsperaService);
 
     app.get("/titulos", catalogoController.listar);
     app.post("/titulos", autenticar, soloBibliotecario, catalogoController.crearTitulo);
@@ -94,6 +114,12 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
       soloBibliotecario,
       catalogoController.agregarEjemplar
     );
+    app.patch(
+      "/ejemplares/:ejemplarId/reparacion",
+      autenticar,
+      soloBibliotecario,
+      catalogoController.cambiarReparacion
+    );
 
     app.get("/feriados", feriadoController.listar);
     app.post("/feriados", autenticar, soloBibliotecario, feriadoController.cargar);
@@ -102,6 +128,7 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
     app.get("/mis-reservas", autenticar, reservaController.mias);
     app.get("/reservas", autenticar, soloBibliotecario, reservaController.listarTodas);
     app.delete("/reservas/:reservaId", autenticar, reservaController.cancelar);
+    app.post("/reservas/:reservaId/reactivar", autenticar, reservaController.reactivar);
 
     const prestamoRepo = new PrestamoRepository(deps.db);
     const prestamoService = new PrestamoService(
@@ -126,20 +153,6 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
     );
     app.post("/prestamos/:prestamoId/renovar", autenticar, prestamoController.renovar);
 
-    const listaEsperaRepo = new ListaEsperaRepository(deps.db);
-    const listaEsperaService = new ListaEsperaService(
-      listaEsperaRepo,
-      reservaRepo,
-      catalogoRepo,
-      feriadoRepo,
-      calendario,
-      reloj,
-      correo,
-      () => reservaService.procesarVencimientos()
-    );
-    reservaService.setListaEsperaProcessor((titulosLiberados) =>
-      listaEsperaService.procesarVencimientosYAsignar(titulosLiberados)
-    );
     const listaEsperaController = new ListaEsperaController(listaEsperaService);
 
     app.post("/listas-espera", autenticar, listaEsperaController.anotarse);
