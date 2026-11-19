@@ -132,4 +132,9 @@ export class ReservaService {
 
     return { reservas, penalidadesVigentes, cupoOcupado };
   }
+
+  async listarTodas(): Promise<ReservaRecord[]> {
+    await this.procesarVencimientos();
+    return this.reservaRepo.listAll();
+  }
 }

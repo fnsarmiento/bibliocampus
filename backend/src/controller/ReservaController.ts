@@ -35,6 +35,15 @@ export class ReservaController {
     }
   };
 
+  listarTodas = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const todas = await this.reservaService.listarTodas();
+      res.status(200).json(todas);
+    } catch (err) {
+      handleControllerError(res, err);
+    }
+  };
+
   cancelar = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       if (!req.usuario) {

@@ -293,6 +293,18 @@ export class ReservaRepository {
     return res.rows.map((r) => this.mapReserva(r as Record<string, unknown>));
   }
 
+  async listAll(): Promise<ReservaRecord[]> {
+    const res = await this.db.execute(`
+      SELECT r.*, e.codigo AS ejemplar_codigo, t.nombre AS titulo_nombre, u.email AS usuario_email
+      FROM reserva r
+      LEFT JOIN ejemplar e ON e.id = r.ejemplar_id
+      INNER JOIN titulo t ON t.id = r.titulo_id
+      INNER JOIN usuario u ON u.id = r.usuario_id
+      ORDER BY r.id DESC
+    `);
+    return res.rows.map((r) => this.mapReserva(r as Record<string, unknown>));
+  }
+
   async listPenalidadesVigentes(usuarioId: number, ahoraIso: string): Promise<CupoPenalizadoRecord[]> {
     const res = await this.db.execute({
       sql: "SELECT id, usuario_id, reserva_id, penalizado_hasta, creado_en FROM cupo_penalizado WHERE usuario_id = ? AND penalizado_hasta > ? ORDER BY penalizado_hasta ASC",
