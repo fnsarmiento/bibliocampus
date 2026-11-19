@@ -1,1 +1,0 @@
-{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/api/client.ts","./src/pages/AuthPage.tsx","./src/pages/CatalogoPage.tsx","./src/pages/LectorPage.tsx","./src/types/api.ts","./src/utils/formatDate.ts","./tests/catalogoAuth.test.tsx","./tests/lector.test.tsx","./tests/setup.ts"],"version":"5.9.3"}

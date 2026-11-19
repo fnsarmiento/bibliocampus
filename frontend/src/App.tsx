@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, api } from "./api/client";
 import { AuthPage } from "./pages/AuthPage";
+import { BibliotecarioPage } from "./pages/BibliotecarioPage";
 import { CatalogoPage } from "./pages/CatalogoPage";
 import { LectorPage } from "./pages/LectorPage";
 import type { TituloConEjemplares, UsuarioPublico } from "./types/api";
@@ -34,7 +35,7 @@ function guardarToken(value: string | null): void {
   }
 }
 
-type Vista = "catalogo" | "lector" | "auth";
+type Vista = "catalogo" | "lector" | "admin" | "auth";
 
 export default function App() {
   const [token, setToken] = useState<string | null>(() => leerTokenGuardado());
@@ -203,6 +204,15 @@ export default function App() {
               >
                 Mis reservas y préstamos
               </button>
+              {usuario.rol === "Bibliotecario" && (
+                <button
+                  type="button"
+                  className={`btn ${vista === "admin" ? "btn-active" : ""}`}
+                  onClick={() => setVista("admin")}
+                >
+                  Panel Bibliotecario
+                </button>
+              )}
               <span className="user-pill">
                 <strong>{usuario.nombre}</strong>
                 <span>· {usuario.rol}</span>
@@ -228,6 +238,13 @@ export default function App() {
           <AuthPage
             onSuccessLogin={handleLogin}
             onCancel={() => setVista("catalogo")}
+          />
+        ) : vista === "admin" && token && usuario?.rol === "Bibliotecario" ? (
+          <BibliotecarioPage
+            token={token}
+            usuarioActualId={usuario.id}
+            titulos={titulos}
+            onRefreshCatalogo={() => cargarCatalogo()}
           />
         ) : vista === "lector" && token && usuario ? (
           <LectorPage
