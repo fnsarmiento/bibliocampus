@@ -59,7 +59,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   2. Al ejecutar la carga dos veces seguidas, no duplica el usuario ni falla.
 
 ### T-06 — Registro, sesión Bearer y cambio de rol (`HU-01`)
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `POST /usuarios` (`Alumno` por defecto, email único, sin devolver password/hash), `POST /entrada` (token Bearer en tabla `sesion`), `GET /yo`, middlewares `autenticar` (`401`) y `soloBibliotecario` (`403`), `GET /usuarios` y `PATCH /usuarios/:usuarioId/rol`.
 - **Cubre:** `RN-04`, `RN-05`, `RN-06`, `RN-07`; `HU-01`, `HU-07`
