@@ -98,7 +98,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 ## Etapa 3 — Reservas online, cupos y concurrencia
 
 ### T-09 — Crear reserva online con cupos, días hábiles y concurrencia
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `POST /reservas` y `GET /mis-reservas`: valida usuario sin suspensión/préstamo vencido, cupo (`2` alumno / `5` docente contando confirmadas, desactivadas, préstamos activos y penalidades vigentes), excluye `solo_en_sala`, asigna ejemplar disponible en transacción con vencimiento a `48 h` hábiles y envía correo.
 - **Cubre:** `RN-02`, `RN-07`, `RN-08`, `RN-09`, `RN-10`, `RN-12`, `RN-13`, `RN-17`, `RN-28`; `HU-02`, `HU-03`
