@@ -2,6 +2,16 @@
 
 Sistema web para gestionar el catálogo, reservas online de 48 h hábiles, préstamos a domicilio, lista de espera unificada (24 h hábiles), reparaciones y suspensiones por atraso de una biblioteca educativa.
 
+## Despliegue en vivo
+
+- **Aplicación web (Frontend en Netlify):** https://bibliocampus.netlify.app/
+- **API (Backend en Render):** https://bibliocampus-backend.onrender.com/ (healthcheck: https://bibliocampus-backend.onrender.com/health)
+- **Repositorio:** https://github.com/fnsarmiento/bibliocampus
+
+> **Nota para pruebas:** En el plan gratuito de Render el servidor entra en reposo tras inactividad, por lo que la primera consulta puede demorar ~30 segundos en responder.
+> - **Usuario `Bibliotecario` de prueba:** `bibliotecario@bibliocampus.local` / contraseña `1234` (habilita el **Panel Bibliotecario** para cargar libros, registrar retiros/devoluciones, gestionar reparaciones, feriados y cambiar roles).
+> - **Lector (`Alumno`):** podés crear cualquier cuenta nueva desde **Ingresar / Registrarse → Crear cuenta**.
+
 ## Estructura del repositorio
 
 - `docs/`: especificación funcional (`spec.md`), decisiones (`decisiones.md`), glosario (`glosario.md`), diseño técnico (`plan.md`), plan de tareas (`tasks.md`) e informe final (`informe-final.md`).
@@ -53,7 +63,7 @@ Variable de entorno en `frontend/`:
 ## Pruebas y compilación
 
 ```bash
-# Backend (15 archivos de test, 34 tests)
+# Backend (15 archivos de test, 36 tests)
 cd backend && npm test && npm run build
 
 # Frontend (3 archivos de test, 6 tests)
