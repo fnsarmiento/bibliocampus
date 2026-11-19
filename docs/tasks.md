@@ -28,7 +28,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   3. Dos entradas activas en `lista_espera` para el mismo usuario y título fallan; dos usuarios con el mismo `email` fallan.
 
 ### T-03 — `Reloj` del sistema y `CalendarioHabil`
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `Reloj` (`SystemReloj` y `FixedReloj` con `advanceTo` y zona `America/Argentina/Buenos_Aires` vía `Intl.DateTimeFormat`) y `CalendarioHabil` para calcular vencimientos de préstamos y ventanas hábiles de `24 h` / `48 h` saltando sábados, domingos y feriados e informando el corrimiento.
 - **Cubre:** `RN-10`, `RN-11`, `RN-15`, `RN-25`
