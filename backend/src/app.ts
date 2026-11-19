@@ -32,21 +32,41 @@ export interface AppDependencies {
   correo?: Correo;
 }
 
+function parseAllowedOrigins(allowedOrigin?: string): string[] {
+  if (!allowedOrigin) {
+    return [];
+  }
+  return allowedOrigin
+    .split(",")
+    .map((o) => o.trim().replace(/\/+$/, ""))
+    .filter((o) => o.length > 0);
+}
+
 /**
  * Crea la instancia de la aplicación Express cableando repositorios, servicios, middlewares y controllers.
  */
 export function createApp(allowedOrigin?: string, deps?: AppDependencies): Express {
   const app = express();
+  const origins = parseAllowedOrigins(allowedOrigin);
 
   app.use(
     cors({
-      origin: allowedOrigin ? [allowedOrigin] : true,
+      origin: origins.length > 0 ? origins : true,
     })
   );
   app.use(express.json());
 
-  app.get("/health", (_req, res) => {
-    res.status(200).json({ ok: true });
+  app.get("/health", async (_req, res) => {
+    if (!deps?.db) {
+      res.status(200).json({ ok: true });
+      return;
+    }
+    try {
+      await deps.db.execute("SELECT 1");
+      res.status(200).json({ ok: true, db: "ok" });
+    } catch {
+      res.status(503).json({ ok: false, db: "error" });
+    }
   });
 
   if (deps) {
