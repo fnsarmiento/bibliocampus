@@ -109,7 +109,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   3. Una reserva confirmada el viernes informa `vence_retiro_en` el martes con `corrimientoInformado = true` y registra aviso en `FakeCorreo`.
 
 ### T-10 — Cancelación voluntaria y vencimiento de `48 h` con penalidad de 7 días
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `DELETE /reservas/:reservaId` (libera ejemplar si tenía y libera cupo) y expiración automática al vencer las `48 h` hábiles (libera ejemplar, crea `cupo_penalizado` por 7 días desde ese vencimiento y envía aviso por correo).
 - **Cubre:** `RN-08`, `RN-11`, `RN-13`, `RN-28`; `HU-03`
