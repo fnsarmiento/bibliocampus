@@ -2,6 +2,9 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+*.db
+*.db-wal
+*.db-shm
 .env
 .env.*
 !.env.example
