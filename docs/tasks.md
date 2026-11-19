@@ -207,7 +207,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 ## Etapa 7 — Despliegue y documentación final de pruebas
 
 ### T-18 — Configuración de producción (Netlify + Render + Turso) e informe final
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend + Dev frontend
 - **Qué hacer:** Configurar CORS con `FRONTEND_URL`, migración en arranque/script sobre Turso, configuración de `frontend/` para Netlify (`_redirects` y `VITE_API_URL`), `README.md` completo sin secretos e informe final de plan con evidencia de pruebas pasando.
 - **Cubre:** Requisitos de entrega del Módulo 5
