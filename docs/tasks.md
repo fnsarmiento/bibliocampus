@@ -134,7 +134,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   3. Un usuario con un préstamo ya vencido sin devolver (o suspendido) no puede crear nuevas reservas ni retiros.
 
 ### T-12 — Renovación de préstamo activo
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `POST /prestamos/:prestamoId/renovar` (extiende +5 días ajustado al siguiente día hábil, máximo 1 renovación, solo antes del vencimiento, solo si usuario no está suspendido/sin vencidos y si no hay lista de espera activa en el título).
 - **Cubre:** `RN-15`, `RN-16`, `RN-17`; `HU-05`
