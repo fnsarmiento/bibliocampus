@@ -313,9 +313,24 @@ export class ListaEsperaRepository {
     venceRetiroEn: string;
     corrimientoInformado: string | null;
     ahoraIso: string;
+    permitirMultiplesCopiasMismoTitulo?: boolean;
   }): Promise<ReservaRecord> {
     const tx = await this.db.transaction("write");
     try {
+      if (!input.permitirMultiplesCopiasMismoTitulo && input.reservaDesactivadaId === null) {
+        const dupTituloRes = await tx.execute({
+          sql: `
+            SELECT
+              (SELECT COUNT(*) FROM reserva WHERE usuario_id = ? AND titulo_id = ? AND estado IN ('confirmada', 'desactivada')) +
+              (SELECT COUNT(*) FROM prestamo p INNER JOIN ejemplar e ON e.id = p.ejemplar_id WHERE p.usuario_id = ? AND e.titulo_id = ? AND p.devuelto_en IS NULL) AS total
+          `,
+          args: [input.usuarioId, input.tituloId, input.usuarioId, input.tituloId],
+        });
+        if (Number(dupTituloRes.rows[0].total) > 0) {
+          await tx.rollback();
+          throw new ConflictError("Como Alumno solo podés tener 1 ejemplar activo por título.");
+        }
+      }
       const cupoRes = await tx.execute({
         sql: `
           SELECT

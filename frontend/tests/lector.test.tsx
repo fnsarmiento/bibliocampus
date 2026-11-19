@@ -101,7 +101,9 @@ describe("T-16 — Pantallas de lector (reservas, préstamos y lista de espera)"
       await screen.findByText(/Se saltaron sábado\/domingo hasta 2026-10-27/i)
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Anotarme en lista de espera/i }));
+    const btnEspera = screen.getByRole("button", { name: /Anotarme en lista de espera/i });
+    expect(btnEspera).toHaveClass("btn-waitlist");
+    await user.click(btnEspera);
     expect(await screen.findByText(/Anotado en la lista de espera/i)).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalled();
   });

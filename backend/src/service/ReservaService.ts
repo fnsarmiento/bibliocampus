@@ -100,6 +100,7 @@ export class ReservaService {
       corrimientoInformado: corrimientoInformado ? detalleCorrimiento : null,
       maxCupo: usuario.cupoMaximo,
       ahoraIso,
+      permitirMultiplesCopiasMismoTitulo: usuario.rol !== "Alumno",
     });
 
     await this.correo.send({

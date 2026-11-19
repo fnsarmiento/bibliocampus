@@ -36,7 +36,17 @@ export class ListaEsperaService {
     const maxCupo = cupoMaximoParaRol(candidate.usuarioRol ?? "Alumno");
     const cupoOcupado = await this.reservaRepo.countCupoOcupado(candidate.usuarioId, ahoraIso);
     const limite = candidate.reservaDesactivadaId !== null ? maxCupo : maxCupo - 1;
-    return cupoOcupado <= limite;
+    if (cupoOcupado > limite) {
+      return false;
+    }
+    if (
+      (candidate.usuarioRol ?? "Alumno") === "Alumno" &&
+      candidate.reservaDesactivadaId === null &&
+      (await this.reservaRepo.hasActivoDelTitulo(candidate.usuarioId, candidate.tituloId))
+    ) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -133,6 +143,12 @@ export class ListaEsperaService {
     if (!titulo) {
       throw new NotFoundError("Título no encontrado.");
     }
+    if (
+      usuario.rol === "Alumno" &&
+      (await this.reservaRepo.hasActivoDelTitulo(usuario.id, tituloId))
+    ) {
+      throw new ConflictError("Como Alumno solo podés tener 1 ejemplar activo por título.");
+    }
 
     return this.listaEsperaRepo.createVoluntariaEnTransaccion({
       tituloId,
@@ -180,6 +196,7 @@ export class ListaEsperaService {
       venceRetiroEn: fechaLimite.toISOString(),
       corrimientoInformado: corrimientoInformado ? detalleCorrimiento : null,
       ahoraIso,
+      permitirMultiplesCopiasMismoTitulo: usuario.rol !== "Alumno",
     });
 
     await this.correo.send({

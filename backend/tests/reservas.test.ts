@@ -75,6 +75,24 @@ describe("T-09 — Crear reserva online con cupos, días hábiles, concurrencia 
       .set("Authorization", `Bearer ${adminToken}`)
       .send({ codigo: "CC-3", soloEnSala: false });
 
+    const t2 = await request(app)
+      .post("/titulos")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ nombre: "DDIA", autor: "Martin Kleppmann" });
+    await request(app)
+      .post(`/titulos/${t2.body.id}/ejemplares`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ codigo: "DDIA-1", soloEnSala: false });
+
+    const t3 = await request(app)
+      .post("/titulos")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ nombre: "Refactoring", autor: "Martin Fowler" });
+    await request(app)
+      .post(`/titulos/${t3.body.id}/ejemplares`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ codigo: "REF-1", soloEnSala: false });
+
     const anaToken = await crearUsuarioYEntrar("Ana", "ana@test.com");
 
     // Título solo en sala -> rechazado sin consumir cupo
@@ -94,18 +112,25 @@ describe("T-09 — Crear reserva online con cupos, días hábiles, concurrencia 
     expect(r1.body.venceRetiroEn).toBe(new Date("2026-10-27T15:00:00-03:00").toISOString());
     expect(r1.body.corrimientoInformado).toBeTruthy();
 
-    // 2.ª reserva -> ocupa cupo 2/2
-    const r2 = await request(app)
+    // Alumno NO puede pedir una segunda copia del mismo título (RN-07)
+    const copiaRepetida = await request(app)
       .post("/reservas")
       .set("Authorization", `Bearer ${anaToken}`)
       .send({ tituloId: t1.body.id });
+    expect(copiaRepetida.status).toBe(409);
+
+    // 2.ª reserva sobre un título distinto -> ocupa cupo 2/2
+    const r2 = await request(app)
+      .post("/reservas")
+      .set("Authorization", `Bearer ${anaToken}`)
+      .send({ tituloId: t2.body.id });
     expect(r2.status).toBe(201);
 
     // 3.ª reserva -> supera cupo de Alumno (2)
     const r3 = await request(app)
       .post("/reservas")
       .set("Authorization", `Bearer ${anaToken}`)
-      .send({ tituloId: t1.body.id });
+      .send({ tituloId: t3.body.id });
     expect(r3.status).toBe(409);
 
     const mis = await request(app)
@@ -150,5 +175,52 @@ describe("T-09 — Crear reserva online con cupos, días hábiles, concurrencia 
 
     const statuses = [res1.status, res2.status].sort((a, b) => a - b);
     expect(statuses).toEqual([201, 409]);
+  });
+
+  it("Docente y Bibliotecario sí pueden reservar múltiples copias del mismo título (RN-07)", async () => {
+    const { app, adminToken, crearUsuarioYEntrar } = await setupEscenario();
+
+    const titulo = await request(app)
+      .post("/titulos")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ nombre: "Clean Code", autor: "Robert Martin" });
+    for (const codigo of ["CC-1", "CC-2", "CC-3", "CC-4"]) {
+      await request(app)
+        .post(`/titulos/${titulo.body.id}/ejemplares`)
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({ codigo, soloEnSala: false });
+    }
+
+    const docenteToken = await crearUsuarioYEntrar("Profe", "profe@test.com");
+    const usuarios = await request(app)
+      .get("/usuarios")
+      .set("Authorization", `Bearer ${adminToken}`);
+    const profe = usuarios.body.find((u: { email: string }) => u.email === "profe@test.com");
+    await request(app)
+      .patch(`/usuarios/${profe.id}/rol`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ rol: "Docente" });
+
+    const d1 = await request(app)
+      .post("/reservas")
+      .set("Authorization", `Bearer ${docenteToken}`)
+      .send({ tituloId: titulo.body.id });
+    const d2 = await request(app)
+      .post("/reservas")
+      .set("Authorization", `Bearer ${docenteToken}`)
+      .send({ tituloId: titulo.body.id });
+    expect(d1.status).toBe(201);
+    expect(d2.status).toBe(201);
+
+    const b1 = await request(app)
+      .post("/reservas")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ tituloId: titulo.body.id });
+    const b2 = await request(app)
+      .post("/reservas")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ tituloId: titulo.body.id });
+    expect(b1.status).toBe(201);
+    expect(b2.status).toBe(201);
   });
 });

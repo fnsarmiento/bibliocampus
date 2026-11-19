@@ -99,6 +99,18 @@ export class ReservaRepository {
     return this.mapReserva(res.rows[0] as Record<string, unknown>);
   }
 
+  async hasActivoDelTitulo(usuarioId: number, tituloId: number): Promise<boolean> {
+    const res = await this.db.execute({
+      sql: `
+        SELECT
+          (SELECT COUNT(*) FROM reserva WHERE usuario_id = ? AND titulo_id = ? AND estado IN ('confirmada', 'desactivada')) +
+          (SELECT COUNT(*) FROM prestamo p INNER JOIN ejemplar e ON e.id = p.ejemplar_id WHERE p.usuario_id = ? AND e.titulo_id = ? AND p.devuelto_en IS NULL) AS total
+      `,
+      args: [usuarioId, tituloId, usuarioId, tituloId],
+    });
+    return Number(res.rows[0].total) > 0;
+  }
+
   async createConfirmadaEnTransaccion(input: {
     usuarioId: number;
     tituloId: number;
@@ -107,10 +119,26 @@ export class ReservaRepository {
     corrimientoInformado: string | null;
     maxCupo: number;
     ahoraIso: string;
+    permitirMultiplesCopiasMismoTitulo?: boolean;
   }): Promise<ReservaRecord> {
     let tx: Awaited<ReturnType<Client["transaction"]>> | null = null;
     try {
       tx = await this.db.transaction("write");
+
+      if (!input.permitirMultiplesCopiasMismoTitulo) {
+        const dupTituloRes = await tx.execute({
+          sql: `
+            SELECT
+              (SELECT COUNT(*) FROM reserva WHERE usuario_id = ? AND titulo_id = ? AND estado IN ('confirmada', 'desactivada')) +
+              (SELECT COUNT(*) FROM prestamo p INNER JOIN ejemplar e ON e.id = p.ejemplar_id WHERE p.usuario_id = ? AND e.titulo_id = ? AND p.devuelto_en IS NULL) AS total
+          `,
+          args: [input.usuarioId, input.tituloId, input.usuarioId, input.tituloId],
+        });
+        if (Number(dupTituloRes.rows[0].total) > 0) {
+          await tx.rollback();
+          throw new ConflictError("Como Alumno solo podés tener 1 ejemplar activo por título.");
+        }
+      }
 
       const cupoRes = await tx.execute({
         sql: `

@@ -95,6 +95,17 @@ body {
   gap: 1rem;
 }
 
+.grid > .card {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.grid > .card .actions-row {
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
 .btn {
   appearance: none;
   border: 1px solid var(--border);
@@ -136,6 +147,16 @@ body {
   background: var(--info-bg);
   color: var(--info-text);
   border-color: #b7d0f7;
+}
+
+.btn-waitlist {
+  background: #d97706;
+  color: #fff;
+  border-color: #b45309;
+}
+
+.btn-waitlist:hover:not(:disabled) {
+  background: #b45309;
 }
 
 .badge {
