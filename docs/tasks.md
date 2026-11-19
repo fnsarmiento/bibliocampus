@@ -84,7 +84,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   2. Solo un `Bibliotecario` puede crear títulos y ejemplares (`403` si intenta un lector).
 
 ### T-08 — Gestión de feriados
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `GET /feriados` y `POST /feriados` (idempotente por fecha) conectados con `CalendarioHabil`.
 - **Cubre:** `RN-10`, `RN-11`, `RN-15`, `RN-25`; `HU-07`
