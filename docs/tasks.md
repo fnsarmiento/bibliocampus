@@ -39,7 +39,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   3. Un vencimiento de préstamo que cae en un feriado cargado se traslada al siguiente día hábil.
 
 ### T-04 — Componente `Correo` simulado y `HashPassword`
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar interfaz `Correo` + `FakeCorreo` en memoria con sello temporal desde `Reloj` y tipos de aviso de `RN-28`, más `HashPassword` con `node:crypto` (`scryptSync`).
 - **Cubre:** `RN-04`, `RN-28`
