@@ -8,7 +8,7 @@ import { createApp } from "./app.js";
 import { SystemReloj } from "./components/Reloj.js";
 import { createDatabaseClient } from "./database/client.js";
 import { runMigrations } from "./database/migrate.js";
-import { loadInitialData } from "./seed/loadInitialData.js";
+import { loadInitialData, seedCatalogoInicial } from "./seed/loadInitialData.js";
 
 async function start(): Promise<void> {
   const port = Number(process.env.PORT || 3000);
@@ -23,6 +23,7 @@ async function start(): Promise<void> {
   if (adminEmail && adminPassword) {
     await loadInitialData(db, reloj, { adminEmail, adminPassword });
   }
+  await seedCatalogoInicial(db, reloj);
 
   const app = createApp(frontendUrl, { db, reloj });
   app.listen(port, () => {

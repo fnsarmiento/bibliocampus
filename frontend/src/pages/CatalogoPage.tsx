@@ -27,15 +27,20 @@ export function CatalogoPage({
   onAnotarEspera,
 }: CatalogoPageProps) {
   const [busqueda, setBusqueda] = useState("");
+  const [soloDisponibles, setSoloDisponibles] = useState(false);
 
   const q = busqueda.trim().toLowerCase();
-  const filtrados = titulos.filter(
-    (t) =>
+  const filtrados = titulos.filter((t) => {
+    const matchesSearch =
       !q ||
       t.nombre.toLowerCase().includes(q) ||
       t.autor.toLowerCase().includes(q) ||
-      (t.isbn ?? "").toLowerCase().includes(q)
-  );
+      (t.isbn ?? "").toLowerCase().includes(q);
+    const matchesStock = !soloDisponibles || t.prestablesDisponibles > 0;
+    return matchesSearch && matchesStock;
+  });
+
+  const totalDisponibles = titulos.reduce((acc, t) => acc + t.prestablesDisponibles, 0);
 
   return (
     <section>
@@ -43,10 +48,11 @@ export function CatalogoPage({
         <div>
           <h2 style={{ margin: 0 }}>Catálogo de biblioteca</h2>
           <p className="muted" style={{ margin: "0.2rem 0 0" }}>
-            Disponibilidad en tiempo real (los ejemplares «solo en sala» son únicamente de consulta).
+            Disponibilidad en tiempo real (los ejemplares «solo en sala» son únicamente de consulta) ·{" "}
+            {titulos.length} títulos, {totalDisponibles} prestables libres.
           </p>
         </div>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
           <input
             type="search"
             className="search-input"
@@ -55,6 +61,14 @@ export function CatalogoPage({
             onChange={(e) => setBusqueda(e.target.value)}
             aria-label="Buscar en el catálogo"
           />
+          <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.88rem" }}>
+            <input
+              type="checkbox"
+              checked={soloDisponibles}
+              onChange={(e) => setSoloDisponibles(e.target.checked)}
+            />
+            Solo disponibles
+          </label>
           <button type="button" className="btn" onClick={onRefresh} disabled={loading}>
             Actualizar
           </button>
