@@ -49,7 +49,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   2. `HashPassword.verify` valida correctamente el password contra el hash generado y el hash difiere del texto plano.
 
 ### T-05 — Carga inicial de bibliotecario administrador
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar carga idempotente al arranque del bibliotecario inicial tomando `INITIAL_ADMIN_EMAIL` e `INITIAL_ADMIN_PASSWORD` desde `.env` (hasheada).
 - **Cubre:** `RN-06`
