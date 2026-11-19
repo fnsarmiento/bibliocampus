@@ -123,7 +123,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 ## Etapa 4 — Préstamos, renovaciones y suspensiones
 
 ### T-11 — Retiro físico, devolución y suspensión por atraso
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `GET /reservas`, `POST /prestamos/retiro` (`7`/`15` días con ajuste hábil), `GET /prestamos` y `POST /prestamos/:prestamoId/devolucion` (calcula atraso en días, suspende `min(atraso, 7)` días, pasa reservas confirmadas pendientes del usuario a `desactivada` liberando el ejemplar temporalmente sin liberar cupo y envía aviso).
 - **Cubre:** `RN-14`, `RN-15`, `RN-17`, `RN-18`, `RN-19`, `RN-28`; `HU-04`
