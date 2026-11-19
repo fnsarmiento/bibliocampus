@@ -175,7 +175,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 ### T-15 — Setup frontend, autenticación y catálogo público
 - **Estado:** `[ ]` pendiente
 - **Agente:** Tester + Dev frontend
-- **Qué hacer:** Inicializar `frontend/` con React + Vite + TypeScript (con `VITE_API_URL` y `base` para GitHub Pages), cliente HTTP con token Bearer, páginas de Registro, Login y Catálogo (mostrando disponibles y ejemplares informativos «solo en sala», manejando aviso de espera inicial en Render si aplica).
+- **Qué hacer:** Inicializar `frontend/` con React + Vite + TypeScript (con `VITE_API_URL` y `_redirects` para Netlify), cliente HTTP con token Bearer, páginas de Registro, Login y Catálogo (mostrando disponibles y ejemplares informativos «solo en sala», manejando aviso de espera inicial en Render si aplica).
 - **Cubre:** `RN-01`, `RN-02`, `RN-04`, `RN-05`; `HU-01`, `HU-02`
 - **Depende de:** `T-14`
 - **Terminada cuando:**
@@ -206,12 +206,12 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 
 ## Etapa 7 — Despliegue y documentación final de pruebas
 
-### T-18 — Configuración de producción (GitHub Pages + Render + Turso) e informe final
+### T-18 — Configuración de producción (Netlify + Render + Turso) e informe final
 - **Estado:** `[ ]` pendiente
 - **Agente:** Tester + Dev backend + Dev frontend
-- **Qué hacer:** Configurar CORS con `FRONTEND_URL`, migración en arranque/script sobre Turso, workflow o publicación estática de `frontend/` en GitHub Pages, `README.md` completo sin secretos e informe final de plan con evidencia de pruebas pasando.
+- **Qué hacer:** Configurar CORS con `FRONTEND_URL`, migración en arranque/script sobre Turso, configuración de `frontend/` para Netlify (`_redirects` y `VITE_API_URL`), `README.md` completo sin secretos e informe final de plan con evidencia de pruebas pasando.
 - **Cubre:** Requisitos de entrega del Módulo 5
 - **Depende de:** `T-17`
 - **Terminada cuando:**
   1. Toda la suite de backend y frontend pasa al 100 % y `git status` no contiene `.env` ni `node_modules/`.
-  2. El frontend en GitHub Pages se comunica con el backend en Render y persiste datos en Turso.
+  2. El frontend en Netlify se comunica con el backend en Render y persiste datos en Turso.

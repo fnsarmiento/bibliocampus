@@ -101,7 +101,7 @@ Se utiliza **SQLite** mediante **`@libsql/client`**: en desarrollo y tests corre
    - `CalendarioHabil` considera días no hábiles a sábados, domingos y fechas de la tabla `feriado`. Para ventanas de `24 h` o `48 h` hábiles avanza de a días hábiles (`1 día hábil` = +24 h saltando días no hábiles; `2 días hábiles` = +48 h saltando días no hábiles); para préstamos (`7`, `15` o `+5` días), si la fecha final cae en día no hábil la traslada al siguiente día hábil. Siempre devuelve `{ fechaLimite, corrimientoInformado, detalleCorrimiento }`.
 3. **Vencimientos automáticos sin timers en segundo plano:** Un método `procesarVencimientos(ahora)` se ejecuta antes de operaciones de catálogo/reservas/préstamos/listas para vencer reservas de `48 h` (creando `cupo_penalizado` de 7 días), expirar avisos de `24 h` (cancelando definitivamente si era reserva `desactivada` para liberar cupo) y avisar al siguiente elegible en orden de `lista_espera`.
 4. **Cola unificada (`RN-24`, `RN-25`, `RN-27`):** Las reservas `desactivada` mantienen su entrada en `lista_espera` con `reserva_desactivada_id` y su `orden_en` original. Al liberarse un ejemplar (o levantarse la suspensión del dueño), el primer elemento elegible (usuario no suspendido y sin préstamo vencido) recibe estado `'avisado'` con 24 h hábiles para `confirmar` o `reactivar`.
-5. **Seguridad:** Contraseñas hasheadas con `node:crypto.scryptSync` + salt aleatorio (sin dependencias nativas C++), tokens aleatorios de 32 bytes y CORS en Render restringido a `FRONTEND_URL` (origen de GitHub Pages).
+5. **Seguridad:** Contraseñas hasheadas con `node:crypto.scryptSync` + salt aleatorio (sin dependencias nativas C++), tokens aleatorios de 32 bytes y CORS en Render restringido a `FRONTEND_URL` (origen de Netlify).
 
 ---
 

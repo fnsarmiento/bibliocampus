@@ -11,8 +11,8 @@ BiblioCampus es un sistema web para gestionar el catálogo, reservas online de 4
 ## 3. Stack técnico
 - **Backend:** Node.js + TypeScript + Express en 3 capas (`Controller`, `Service`, `Repository`), tests con Vitest + Supertest.
 - **Base de datos:** SQLite vía `@libsql/client` (archivo local / `:memory:` en desarrollo y tests; Turso en producción).
-- **Frontend:** React + Vite + TypeScript (desplegable en GitHub Pages).
-- **Producción:** GitHub Pages (frontend) + Render (backend) + Turso (BD).
+- **Frontend:** React + Vite + TypeScript (desplegable en Netlify).
+- **Producción:** Netlify (frontend) + Render (backend) + Turso (BD).
 
 ## 4. Reglas para todos los agentes
 - Antes de actuar, leer `docs/spec.md` y `docs/glosario.md`.
