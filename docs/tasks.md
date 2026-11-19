@@ -173,7 +173,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 ## Etapa 6 — Frontend React + Vite + TypeScript
 
 ### T-15 — Setup frontend, autenticación y catálogo público
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev frontend
 - **Qué hacer:** Inicializar `frontend/` con React + Vite + TypeScript (con `VITE_API_URL` y `_redirects` para Netlify), cliente HTTP con token Bearer, páginas de Registro, Login y Catálogo (mostrando disponibles y ejemplares informativos «solo en sala», manejando aviso de espera inicial en Render si aplica).
 - **Cubre:** `RN-01`, `RN-02`, `RN-04`, `RN-05`; `HU-01`, `HU-02`
