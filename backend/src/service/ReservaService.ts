@@ -14,6 +14,8 @@ import type { UsuarioPublico } from "./UsuarioService.js";
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 export class ReservaService {
+  private onAfterVencimientos?: (titulosLiberados: number[]) => Promise<void>;
+
   constructor(
     private readonly reservaRepo: ReservaRepository,
     private readonly catalogoRepo: CatalogoRepository,
@@ -23,13 +25,18 @@ export class ReservaService {
     private readonly correo: Correo
   ) {}
 
+  setListaEsperaProcessor(handler: (titulosLiberados: number[]) => Promise<void>): void {
+    this.onAfterVencimientos = handler;
+  }
+
   /**
-   * Vence reservas de 48 h hábiles no retiradas, libera el ejemplar y penaliza 1 cupo por 7 días (RN-11, RN-28).
+   * Vence reservas de 48 h hábiles no retiradas, libera el ejemplar, penaliza 1 cupo por 7 días y procesa la lista de espera (RN-11, RN-25, RN-28).
    */
   async procesarVencimientos(): Promise<void> {
     const ahora = this.reloj.now();
     const ahoraIso = ahora.toISOString();
     const vencidas = await this.reservaRepo.listConfirmadasVencidas(ahoraIso);
+    const titulosLiberados: number[] = [];
 
     for (const reserva of vencidas) {
       const baseVencimientoMs = reserva.venceRetiroEn
@@ -45,13 +52,20 @@ export class ReservaService {
         creadoEn: ahoraIso,
       });
 
-      if (aplicada && reserva.usuarioEmail) {
-        await this.correo.send({
-          to: reserva.usuarioEmail,
-          type: "reserva vencida",
-          message: `Tu reserva de "${reserva.tituloNombre}" venció sin retiro. El ejemplar fue liberado y el cupo queda penalizado hasta ${penalizadoHasta}.`,
-        });
+      if (aplicada) {
+        titulosLiberados.push(reserva.tituloId);
+        if (reserva.usuarioEmail) {
+          await this.correo.send({
+            to: reserva.usuarioEmail,
+            type: "reserva vencida",
+            message: `Tu reserva de "${reserva.tituloNombre}" venció sin retiro. El ejemplar fue liberado y el cupo queda penalizado hasta ${penalizadoHasta}.`,
+          });
+        }
       }
+    }
+
+    if (this.onAfterVencimientos) {
+      await this.onAfterVencimientos(titulosLiberados);
     }
   }
 
@@ -113,7 +127,11 @@ export class ReservaService {
       throw new ConflictError(`La reserva en estado "${reserva.estado}" no puede cancelarse.`);
     }
 
-    return this.reservaRepo.cancelarEnTransaccion(reserva.id, reserva.ejemplarId);
+    const cancelada = await this.reservaRepo.cancelarEnTransaccion(reserva.id, reserva.ejemplarId);
+    if (this.onAfterVencimientos) {
+      await this.onAfterVencimientos([cancelada.tituloId]);
+    }
+    return cancelada;
   }
 
   async listarMisReservas(usuarioId: number): Promise<{

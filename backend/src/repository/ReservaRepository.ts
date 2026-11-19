@@ -126,6 +126,19 @@ export class ReservaRepository {
         throw new ConflictError("Alcanzaste tu cupo máximo disponible.");
       }
 
+      const stockRes = await tx.execute({
+        sql: `
+          SELECT
+            (SELECT COUNT(*) FROM ejemplar WHERE titulo_id = ? AND solo_en_sala = 0 AND estado = 'disponible') AS disponibles,
+            (SELECT COUNT(*) FROM lista_espera WHERE titulo_id = ? AND estado = 'avisado') AS avisados
+        `,
+        args: [input.tituloId, input.tituloId],
+      });
+      if (Number(stockRes.rows[0].disponibles) <= Number(stockRes.rows[0].avisados)) {
+        await tx.rollback();
+        throw new ConflictError("No hay ejemplares prestables disponibles para este título.");
+      }
+
       const ejRes = await tx.execute({
         sql: "SELECT id, codigo FROM ejemplar WHERE titulo_id = ? AND solo_en_sala = 0 AND estado = 'disponible' ORDER BY id ASC LIMIT 1",
         args: [input.tituloId],

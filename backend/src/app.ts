@@ -6,18 +6,21 @@ import { FakeCorreo, type Correo } from "./components/Correo.js";
 import { SystemReloj, type Reloj } from "./components/Reloj.js";
 import { CatalogoController } from "./controller/CatalogoController.js";
 import { FeriadoController } from "./controller/FeriadoController.js";
+import { ListaEsperaController } from "./controller/ListaEsperaController.js";
 import { PrestamoController } from "./controller/PrestamoController.js";
 import { ReservaController } from "./controller/ReservaController.js";
 import { UsuarioController } from "./controller/UsuarioController.js";
 import { crearAutenticar, soloBibliotecario } from "./middleware/auth.js";
 import { CatalogoRepository } from "./repository/CatalogoRepository.js";
 import { FeriadoRepository } from "./repository/FeriadoRepository.js";
+import { ListaEsperaRepository } from "./repository/ListaEsperaRepository.js";
 import { PrestamoRepository } from "./repository/PrestamoRepository.js";
 import { ReservaRepository } from "./repository/ReservaRepository.js";
 import { SesionRepository } from "./repository/SesionRepository.js";
 import { UsuarioRepository } from "./repository/UsuarioRepository.js";
 import { CatalogoService } from "./service/CatalogoService.js";
 import { FeriadoService } from "./service/FeriadoService.js";
+import { ListaEsperaService } from "./service/ListaEsperaService.js";
 import { PrestamoService } from "./service/PrestamoService.js";
 import { ReservaService } from "./service/ReservaService.js";
 import { UsuarioService } from "./service/UsuarioService.js";
@@ -122,6 +125,27 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
       prestamoController.devolucion
     );
     app.post("/prestamos/:prestamoId/renovar", autenticar, prestamoController.renovar);
+
+    const listaEsperaRepo = new ListaEsperaRepository(deps.db);
+    const listaEsperaService = new ListaEsperaService(
+      listaEsperaRepo,
+      reservaRepo,
+      catalogoRepo,
+      feriadoRepo,
+      calendario,
+      reloj,
+      correo,
+      () => reservaService.procesarVencimientos()
+    );
+    reservaService.setListaEsperaProcessor((titulosLiberados) =>
+      listaEsperaService.procesarVencimientosYAsignar(titulosLiberados)
+    );
+    const listaEsperaController = new ListaEsperaController(listaEsperaService);
+
+    app.post("/listas-espera", autenticar, listaEsperaController.anotarse);
+    app.get("/mis-listas-espera", autenticar, listaEsperaController.mias);
+    app.post("/listas-espera/:esperaId/confirmar", autenticar, listaEsperaController.confirmar);
+    app.post("/listas-espera/:esperaId/rechazar", autenticar, listaEsperaController.rechazar);
   }
 
   return app;

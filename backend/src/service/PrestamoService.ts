@@ -143,6 +143,8 @@ export class PrestamoService {
       });
     }
 
+    await this.reservaService.procesarVencimientos();
+
     return {
       prestamo: updated,
       diasAtraso,

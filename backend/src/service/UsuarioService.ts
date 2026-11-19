@@ -22,6 +22,10 @@ export interface UsuarioPublico {
   creadoEn: string;
 }
 
+export function cupoMaximoParaRol(rol: RolUsuario): number {
+  return rol === "Alumno" ? 2 : 5;
+}
+
 export class UsuarioService {
   constructor(
     private readonly usuarioRepo: UsuarioRepository,
@@ -30,7 +34,7 @@ export class UsuarioService {
   ) {}
 
   cupoMaximoPara(rol: RolUsuario): number {
-    return rol === "Alumno" ? 2 : 5;
+    return cupoMaximoParaRol(rol);
   }
 
   toPublico(record: UsuarioRecord): UsuarioPublico {
