@@ -3,12 +3,15 @@ import cors from "cors";
 import express, { type Express } from "express";
 import { SystemReloj, type Reloj } from "./components/Reloj.js";
 import { CatalogoController } from "./controller/CatalogoController.js";
+import { FeriadoController } from "./controller/FeriadoController.js";
 import { UsuarioController } from "./controller/UsuarioController.js";
 import { crearAutenticar, soloBibliotecario } from "./middleware/auth.js";
 import { CatalogoRepository } from "./repository/CatalogoRepository.js";
+import { FeriadoRepository } from "./repository/FeriadoRepository.js";
 import { SesionRepository } from "./repository/SesionRepository.js";
 import { UsuarioRepository } from "./repository/UsuarioRepository.js";
 import { CatalogoService } from "./service/CatalogoService.js";
+import { FeriadoService } from "./service/FeriadoService.js";
 import { UsuarioService } from "./service/UsuarioService.js";
 
 export interface AppDependencies {
@@ -59,6 +62,13 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
       soloBibliotecario,
       catalogoController.agregarEjemplar
     );
+
+    const feriadoRepo = new FeriadoRepository(deps.db);
+    const feriadoService = new FeriadoService(feriadoRepo);
+    const feriadoController = new FeriadoController(feriadoService);
+
+    app.get("/feriados", feriadoController.listar);
+    app.post("/feriados", autenticar, soloBibliotecario, feriadoController.cargar);
   }
 
   return app;
