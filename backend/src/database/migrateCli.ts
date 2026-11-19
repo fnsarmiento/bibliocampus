@@ -1,3 +1,9 @@
+try {
+  process.loadEnvFile?.();
+} catch {
+  // En producción las variables ya llegan en process.env
+}
+
 import { createDatabaseClient } from "./client.js";
 import { runMigrations } from "./migrate.js";
 

@@ -1,3 +1,9 @@
+try {
+  process.loadEnvFile?.();
+} catch {
+  // En producción (Render) las variables ya llegan en process.env
+}
+
 import { createApp } from "./app.js";
 import { SystemReloj } from "./components/Reloj.js";
 import { createDatabaseClient } from "./database/client.js";
