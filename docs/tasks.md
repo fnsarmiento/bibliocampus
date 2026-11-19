@@ -193,7 +193,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
   2. `npm run build` y tests de interfaz pasan sin errores.
 
 ### T-17 — Panel de Bibliotecario
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev frontend
 - **Qué hacer:** Vista administrativa protegida para cargar títulos/ejemplares, pasar ejemplares a/desde reparación, registrar retiros y devoluciones, cargar feriados y cambiar roles (`Alumno`/`Docente`/`Bibliotecario`).
 - **Cubre:** `RN-01` a `RN-03`, `RN-06`, `RN-14`, `RN-18`, `RN-20`, `RN-21`; `HU-04`, `HU-07`
