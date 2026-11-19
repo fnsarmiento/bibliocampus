@@ -1,7 +1,7 @@
 import type { CalendarioHabil } from "../components/CalendarioHabil.js";
 import type { Correo } from "../components/Correo.js";
 import type { Reloj } from "../components/Reloj.js";
-import { ConflictError, NotFoundError } from "../domain/errors.js";
+import { ConflictError, ForbiddenError, NotFoundError } from "../domain/errors.js";
 import type { FeriadoRepository } from "../repository/FeriadoRepository.js";
 import type { PrestamoRecord, PrestamoRepository } from "../repository/PrestamoRepository.js";
 import type { ReservaRepository } from "../repository/ReservaRepository.js";
@@ -148,6 +148,63 @@ export class PrestamoService {
       diasAtraso,
       diasSuspension,
       suspendidoHasta: nuevoSuspendidoHasta,
+    };
+  }
+
+  /**
+   * Renueva un préstamo activo 1 sola vez por 5 días hábiles si no hay lista de espera (RN-15, RN-16, RN-17).
+   */
+  async renovarPrestamo(
+    usuario: UsuarioPublico,
+    prestamoId: number
+  ): Promise<PrestamoRecord & { corrimientoInformado: string | null }> {
+    await this.reservaService.procesarVencimientos();
+    const ahora = this.reloj.now();
+    const ahoraIso = ahora.toISOString();
+
+    if (usuario.suspendidoHasta && usuario.suspendidoHasta > ahoraIso) {
+      throw new ConflictError("Usuario suspendido: no puede renovar préstamos.");
+    }
+
+    const prestamo = await this.prestamoRepo.findById(prestamoId, ahoraIso);
+    if (!prestamo) {
+      throw new NotFoundError("Préstamo no encontrado.");
+    }
+    if (prestamo.usuarioId !== usuario.id) {
+      throw new ForbiddenError("No podés renovar el préstamo de otro usuario.");
+    }
+    if (prestamo.devueltoEn !== null) {
+      throw new ConflictError("El préstamo ya fue devuelto.");
+    }
+    if (prestamo.renovado) {
+      throw new ConflictError("El préstamo ya fue renovado una vez.");
+    }
+    if (ahora.getTime() > Date.parse(prestamo.venceEn)) {
+      throw new ConflictError("No podés renovar un préstamo ya vencido.");
+    }
+    if (await this.reservaRepo.hasPrestamoVencido(usuario.id, ahoraIso)) {
+      throw new ConflictError("Tenés otro préstamo vencido sin devolver.");
+    }
+    if (
+      prestamo.tituloId !== undefined &&
+      (await this.prestamoRepo.hasActiveListaEsperaForTitulo(prestamo.tituloId))
+    ) {
+      throw new ConflictError("No se puede renovar porque hay usuarios en lista de espera.");
+    }
+
+    const feriados = await this.feriadoRepo.listFechas();
+    const { fechaLimite, corrimientoInformado, detalleCorrimiento } =
+      this.calendario.calcularVencimientoPrestamo(new Date(prestamo.venceEn), 5, feriados);
+
+    const updated = await this.prestamoRepo.marcarRenovado(
+      prestamo.id,
+      fechaLimite.toISOString(),
+      ahoraIso
+    );
+
+    return {
+      ...updated,
+      corrimientoInformado: corrimientoInformado ? detalleCorrimiento : null,
     };
   }
 }

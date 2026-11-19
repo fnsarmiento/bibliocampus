@@ -44,4 +44,20 @@ export class PrestamoController {
       handleControllerError(res, err);
     }
   };
+
+  renovar = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.usuario) {
+        throw new UnauthorizedError();
+      }
+      const prestamoId = Number(req.params.prestamoId);
+      if (!Number.isInteger(prestamoId) || prestamoId <= 0) {
+        throw new ValidationError("Identificador de préstamo inválido.");
+      }
+      const renovado = await this.prestamoService.renovarPrestamo(req.usuario, prestamoId);
+      res.status(200).json(renovado);
+    } catch (err) {
+      handleControllerError(res, err);
+    }
+  };
 }

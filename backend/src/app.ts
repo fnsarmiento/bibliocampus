@@ -121,6 +121,7 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
       soloBibliotecario,
       prestamoController.devolucion
     );
+    app.post("/prestamos/:prestamoId/renovar", autenticar, prestamoController.renovar);
   }
 
   return app;

@@ -221,4 +221,27 @@ export class PrestamoRepository {
       throw err;
     }
   }
+
+  async hasActiveListaEsperaForTitulo(tituloId: number): Promise<boolean> {
+    const res = await this.db.execute({
+      sql: "SELECT COUNT(*) AS total FROM lista_espera WHERE titulo_id = ? AND estado IN ('esperando', 'avisado')",
+      args: [tituloId],
+    });
+    return Number(res.rows[0].total) > 0;
+  }
+
+  async marcarRenovado(prestamoId: number, nuevoVenceEn: string, ahoraIso: string): Promise<PrestamoRecord> {
+    const upd = await this.db.execute({
+      sql: "UPDATE prestamo SET vence_en = ?, renovado = 1 WHERE id = ? AND renovado = 0 AND devuelto_en IS NULL",
+      args: [nuevoVenceEn, prestamoId],
+    });
+    if (upd.rowsAffected === 0) {
+      throw new Error("No se pudo renovar el préstamo.");
+    }
+    const updated = await this.findById(prestamoId, ahoraIso);
+    if (!updated) {
+      throw new Error("No se pudo recuperar el préstamo renovado.");
+    }
+    return updated;
+  }
 }
