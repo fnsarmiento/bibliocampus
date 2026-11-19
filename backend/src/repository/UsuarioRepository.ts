@@ -38,6 +38,24 @@ export class UsuarioRepository {
     return this.mapRow(res.rows[0] as Record<string, unknown>);
   }
 
+  async findById(id: number): Promise<UsuarioRecord | null> {
+    const res = await this.db.execute({
+      sql: "SELECT id, nombre, email, contrasena_hash, rol, suspendido_hasta, creado_en FROM usuario WHERE id = ?",
+      args: [id],
+    });
+    if (res.rows.length === 0) {
+      return null;
+    }
+    return this.mapRow(res.rows[0] as Record<string, unknown>);
+  }
+
+  async listAll(): Promise<UsuarioRecord[]> {
+    const res = await this.db.execute(
+      "SELECT id, nombre, email, contrasena_hash, rol, suspendido_hasta, creado_en FROM usuario ORDER BY id ASC"
+    );
+    return res.rows.map((r) => this.mapRow(r as Record<string, unknown>));
+  }
+
   async create(input: {
     nombre: string;
     email: string;
@@ -49,11 +67,18 @@ export class UsuarioRepository {
       sql: "INSERT INTO usuario (nombre, email, contrasena_hash, rol, creado_en) VALUES (?, ?, ?, ?, ?)",
       args: [input.nombre.trim(), input.email.trim().toLowerCase(), input.contrasenaHash, input.rol, input.creadoEn],
     });
-    const insertedId = Number(res.lastInsertRowid);
-    const created = await this.db.execute({
-      sql: "SELECT id, nombre, email, contrasena_hash, rol, suspendido_hasta, creado_en FROM usuario WHERE id = ?",
-      args: [insertedId],
+    const inserted = await this.findById(Number(res.lastInsertRowid));
+    if (!inserted) {
+      throw new Error("No se pudo recuperar el usuario recién creado.");
+    }
+    return inserted;
+  }
+
+  async updateRol(id: number, rol: RolUsuario): Promise<UsuarioRecord | null> {
+    await this.db.execute({
+      sql: "UPDATE usuario SET rol = ? WHERE id = ?",
+      args: [rol, id],
     });
-    return this.mapRow(created.rows[0] as Record<string, unknown>);
+    return this.findById(id);
   }
 }

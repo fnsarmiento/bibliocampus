@@ -1,10 +1,30 @@
 import { createApp } from "./app.js";
+import { SystemReloj } from "./components/Reloj.js";
+import { createDatabaseClient } from "./database/client.js";
+import { runMigrations } from "./database/migrate.js";
+import { loadInitialData } from "./seed/loadInitialData.js";
 
-const port = Number(process.env.PORT || 3000);
-const frontendUrl = process.env.FRONTEND_URL;
+async function start(): Promise<void> {
+  const port = Number(process.env.PORT || 3000);
+  const frontendUrl = process.env.FRONTEND_URL;
+  const adminEmail = process.env.INITIAL_ADMIN_EMAIL || "";
+  const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || "";
 
-const app = createApp(frontendUrl);
+  const db = createDatabaseClient();
+  const reloj = new SystemReloj();
 
-app.listen(port, () => {
-  console.log(`BiblioCampus backend listening on port ${port}`);
+  await runMigrations(db);
+  if (adminEmail && adminPassword) {
+    await loadInitialData(db, reloj, { adminEmail, adminPassword });
+  }
+
+  const app = createApp(frontendUrl, { db, reloj });
+  app.listen(port, () => {
+    console.log(`BiblioCampus backend listening on port ${port}`);
+  });
+}
+
+start().catch((err) => {
+  console.error("Error al iniciar el backend:", err);
+  process.exit(1);
 });
