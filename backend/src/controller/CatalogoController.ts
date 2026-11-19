@@ -3,10 +3,16 @@ import { handleControllerError, ValidationError } from "../domain/errors.js";
 import type { CatalogoService } from "../service/CatalogoService.js";
 
 export class CatalogoController {
-  constructor(private readonly catalogoService: CatalogoService) {}
+  constructor(
+    private readonly catalogoService: CatalogoService,
+    private readonly beforeList?: () => Promise<void>
+  ) {}
 
   listar = async (_req: Request, res: Response): Promise<void> => {
     try {
+      if (this.beforeList) {
+        await this.beforeList();
+      }
       const catalogo = await this.catalogoService.listarCatalogo();
       res.status(200).json(catalogo);
     } catch (err) {

@@ -21,6 +21,7 @@ export interface ReservaRecord {
   ordenColaEn: string | null;
   ejemplarCodigo?: string | null;
   tituloNombre?: string;
+  usuarioEmail?: string;
 }
 
 export interface CupoPenalizadoRecord {
@@ -55,6 +56,7 @@ export class ReservaRepository {
           ? null
           : String(row.ejemplar_codigo),
       tituloNombre: row.titulo_nombre === undefined ? undefined : String(row.titulo_nombre),
+      usuarioEmail: row.usuario_email === undefined ? undefined : String(row.usuario_email),
     };
   }
 
@@ -77,6 +79,24 @@ export class ReservaRepository {
       args: [usuarioId, ahoraIso],
     });
     return Number(res.rows[0].total) > 0;
+  }
+
+  async findById(reservaId: number): Promise<ReservaRecord | null> {
+    const res = await this.db.execute({
+      sql: `
+        SELECT r.*, e.codigo AS ejemplar_codigo, t.nombre AS titulo_nombre, u.email AS usuario_email
+        FROM reserva r
+        LEFT JOIN ejemplar e ON e.id = r.ejemplar_id
+        INNER JOIN titulo t ON t.id = r.titulo_id
+        INNER JOIN usuario u ON u.id = r.usuario_id
+        WHERE r.id = ?
+      `,
+      args: [reservaId],
+    });
+    if (res.rows.length === 0) {
+      return null;
+    }
+    return this.mapReserva(res.rows[0] as Record<string, unknown>);
   }
 
   async createConfirmadaEnTransaccion(input: {
@@ -163,7 +183,7 @@ export class ReservaRepository {
         try {
           await tx.rollback();
         } catch {
-          // ignore if already committed/rolled back
+          // ignore
         }
       }
       if (err instanceof ConflictError) {
@@ -173,6 +193,87 @@ export class ReservaRepository {
       if (msg.includes("UNIQUE") || msg.includes("SQLITE_BUSY")) {
         throw new ConflictError("No hay ejemplares prestables disponibles para este título.");
       }
+      throw err;
+    }
+  }
+
+  async cancelarEnTransaccion(reservaId: number, ejemplarId: number | null): Promise<ReservaRecord> {
+    const tx = await this.db.transaction("write");
+    try {
+      await tx.execute({
+        sql: "UPDATE reserva SET estado = 'cancelada', ejemplar_id = NULL WHERE id = ? AND estado IN ('confirmada', 'desactivada')",
+        args: [reservaId],
+      });
+      if (ejemplarId !== null) {
+        await tx.execute({
+          sql: "UPDATE ejemplar SET estado = 'disponible' WHERE id = ? AND estado = 'reservado'",
+          args: [ejemplarId],
+        });
+      }
+      await tx.execute({
+        sql: "UPDATE lista_espera SET estado = 'cancelado' WHERE reserva_desactivada_id = ? AND estado IN ('esperando', 'avisado')",
+        args: [reservaId],
+      });
+      await tx.commit();
+    } catch (err) {
+      await tx.rollback();
+      throw err;
+    }
+
+    const updated = await this.findById(reservaId);
+    if (!updated) {
+      throw new Error("No se pudo leer la reserva cancelada.");
+    }
+    return updated;
+  }
+
+  async listConfirmadasVencidas(ahoraIso: string): Promise<ReservaRecord[]> {
+    const res = await this.db.execute({
+      sql: `
+        SELECT r.*, e.codigo AS ejemplar_codigo, t.nombre AS titulo_nombre, u.email AS usuario_email
+        FROM reserva r
+        LEFT JOIN ejemplar e ON e.id = r.ejemplar_id
+        INNER JOIN titulo t ON t.id = r.titulo_id
+        INNER JOIN usuario u ON u.id = r.usuario_id
+        WHERE r.estado = 'confirmada' AND r.vence_retiro_en IS NOT NULL AND r.vence_retiro_en < ?
+        ORDER BY r.vence_retiro_en ASC
+      `,
+      args: [ahoraIso],
+    });
+    return res.rows.map((r) => this.mapReserva(r as Record<string, unknown>));
+  }
+
+  async marcarVencidaYPenalizarEnTransaccion(input: {
+    reservaId: number;
+    usuarioId: number;
+    ejemplarId: number | null;
+    penalizadoHasta: string;
+    creadoEn: string;
+  }): Promise<boolean> {
+    const tx = await this.db.transaction("write");
+    try {
+      const upd = await tx.execute({
+        sql: "UPDATE reserva SET estado = 'vencida' WHERE id = ? AND estado = 'confirmada'",
+        args: [input.reservaId],
+      });
+      if (upd.rowsAffected === 0) {
+        await tx.rollback();
+        return false;
+      }
+      if (input.ejemplarId !== null) {
+        await tx.execute({
+          sql: "UPDATE ejemplar SET estado = 'disponible' WHERE id = ? AND estado = 'reservado'",
+          args: [input.ejemplarId],
+        });
+      }
+      await tx.execute({
+        sql: "INSERT INTO cupo_penalizado (usuario_id, reserva_id, penalizado_hasta, creado_en) VALUES (?, ?, ?, ?)",
+        args: [input.usuarioId, input.reservaId, input.penalizadoHasta, input.creadoEn],
+      });
+      await tx.commit();
+      return true;
+    } catch (err) {
+      await tx.rollback();
       throw err;
     }
   }

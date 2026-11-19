@@ -60,8 +60,25 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
     app.patch("/usuarios/:usuarioId/rol", autenticar, soloBibliotecario, usuarioController.cambiarRol);
 
     const catalogoRepo = new CatalogoRepository(deps.db);
+    const feriadoRepo = new FeriadoRepository(deps.db);
+    const reservaRepo = new ReservaRepository(deps.db);
+
     const catalogoService = new CatalogoService(catalogoRepo, reloj);
-    const catalogoController = new CatalogoController(catalogoService);
+    const feriadoService = new FeriadoService(feriadoRepo);
+    const reservaService = new ReservaService(
+      reservaRepo,
+      catalogoRepo,
+      feriadoRepo,
+      calendario,
+      reloj,
+      correo
+    );
+
+    const catalogoController = new CatalogoController(catalogoService, () =>
+      reservaService.procesarVencimientos()
+    );
+    const feriadoController = new FeriadoController(feriadoService);
+    const reservaController = new ReservaController(reservaService);
 
     app.get("/titulos", catalogoController.listar);
     app.post("/titulos", autenticar, soloBibliotecario, catalogoController.crearTitulo);
@@ -72,26 +89,12 @@ export function createApp(allowedOrigin?: string, deps?: AppDependencies): Expre
       catalogoController.agregarEjemplar
     );
 
-    const feriadoRepo = new FeriadoRepository(deps.db);
-    const feriadoService = new FeriadoService(feriadoRepo);
-    const feriadoController = new FeriadoController(feriadoService);
-
     app.get("/feriados", feriadoController.listar);
     app.post("/feriados", autenticar, soloBibliotecario, feriadoController.cargar);
 
-    const reservaRepo = new ReservaRepository(deps.db);
-    const reservaService = new ReservaService(
-      reservaRepo,
-      catalogoRepo,
-      feriadoRepo,
-      calendario,
-      reloj,
-      correo
-    );
-    const reservaController = new ReservaController(reservaService);
-
     app.post("/reservas", autenticar, reservaController.crear);
     app.get("/mis-reservas", autenticar, reservaController.mias);
+    app.delete("/reservas/:reservaId", autenticar, reservaController.cancelar);
   }
 
   return app;

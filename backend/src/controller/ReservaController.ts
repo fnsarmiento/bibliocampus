@@ -34,4 +34,20 @@ export class ReservaController {
       handleControllerError(res, err);
     }
   };
+
+  cancelar = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.usuario) {
+        throw new UnauthorizedError();
+      }
+      const reservaId = Number(req.params.reservaId);
+      if (!Number.isInteger(reservaId) || reservaId <= 0) {
+        throw new ValidationError("Identificador de reserva inválido.");
+      }
+      const cancelada = await this.reservaService.cancelarReserva(req.usuario.id, reservaId);
+      res.status(200).json(cancelada);
+    } catch (err) {
+      handleControllerError(res, err);
+    }
+  };
 }
