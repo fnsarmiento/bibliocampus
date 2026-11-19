@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiError, api } from "./api/client";
 import { AuthPage } from "./pages/AuthPage";
 import { CatalogoPage } from "./pages/CatalogoPage";
+import { LectorPage } from "./pages/LectorPage";
 import type { TituloConEjemplares, UsuarioPublico } from "./types/api";
+import { formatFechaAr } from "./utils/formatDate";
 import "./styles/app.css";
 
 const TOKEN_STORAGE_KEY = "bibliocampus_token";
@@ -32,7 +34,7 @@ function guardarToken(value: string | null): void {
   }
 }
 
-type Vista = "catalogo" | "auth";
+type Vista = "catalogo" | "lector" | "auth";
 
 export default function App() {
   const [token, setToken] = useState<string | null>(() => leerTokenGuardado());
@@ -42,6 +44,10 @@ export default function App() {
   const [loadingCatalogo, setLoadingCatalogo] = useState(true);
   const [slowServer, setSlowServer] = useState(false);
   const [catalogoError, setCatalogoError] = useState<string | null>(null);
+  const [busyTituloId, setBusyTituloId] = useState<number | null>(null);
+  const [catalogoMsg, setCatalogoMsg] = useState<{ type: "ok" | "err"; text: string } | null>(
+    null
+  );
 
   const cargarCatalogo = useCallback(async () => {
     setLoadingCatalogo(true);
@@ -106,7 +112,69 @@ export default function App() {
     guardarToken(null);
     setToken(null);
     setUsuario(null);
+    setCatalogoMsg(null);
     setVista("catalogo");
+  }
+
+  const refrescarUsuario = useCallback(async () => {
+    if (!token) {
+      return;
+    }
+    try {
+      const updated = await api.yo(token);
+      setUsuario(updated);
+    } catch {
+      // ignore background refresh error
+    }
+  }, [token]);
+
+  async function handleReservar(tituloId: number) {
+    if (!token) {
+      return;
+    }
+    setBusyTituloId(tituloId);
+    setCatalogoMsg(null);
+    try {
+      const res = await api.crearReserva(token, tituloId);
+      setCatalogoMsg({
+        type: "ok",
+        text: `Reserva confirmada (${res.ejemplarCodigo ?? ""}). Retirar antes de ${formatFechaAr(
+          res.venceRetiroEn
+        )}.${res.corrimientoInformado ? ` ${res.corrimientoInformado}` : ""}`,
+      });
+      await cargarCatalogo();
+      await refrescarUsuario();
+    } catch (err) {
+      setCatalogoMsg({
+        type: "err",
+        text: err instanceof ApiError ? err.message : "No se pudo crear la reserva.",
+      });
+    } finally {
+      setBusyTituloId(null);
+    }
+  }
+
+  async function handleAnotarEspera(tituloId: number) {
+    if (!token) {
+      return;
+    }
+    setBusyTituloId(tituloId);
+    setCatalogoMsg(null);
+    try {
+      const entry = await api.anotarseListaEspera(token, tituloId);
+      setCatalogoMsg({
+        type: "ok",
+        text: `Anotado en la lista de espera de "${entry.tituloNombre ?? `título #${tituloId}`}". No consume cupo hasta confirmar disponibilidad.`,
+      });
+    } catch (err) {
+      setCatalogoMsg({
+        type: "err",
+        text:
+          err instanceof ApiError ? err.message : "No se pudo anotar en la lista de espera.",
+      });
+    } finally {
+      setBusyTituloId(null);
+    }
   }
 
   return (
@@ -128,6 +196,13 @@ export default function App() {
 
           {usuario ? (
             <>
+              <button
+                type="button"
+                className={`btn ${vista === "lector" ? "btn-active" : ""}`}
+                onClick={() => setVista("lector")}
+              >
+                Mis reservas y préstamos
+              </button>
               <span className="user-pill">
                 <strong>{usuario.nombre}</strong>
                 <span>· {usuario.rol}</span>
@@ -154,6 +229,15 @@ export default function App() {
             onSuccessLogin={handleLogin}
             onCancel={() => setVista("catalogo")}
           />
+        ) : vista === "lector" && token && usuario ? (
+          <LectorPage
+            token={token}
+            usuario={usuario}
+            onProfileChanged={() => {
+              void cargarCatalogo();
+              void refrescarUsuario();
+            }}
+          />
         ) : (
           <CatalogoPage
             titulos={titulos}
@@ -161,6 +245,11 @@ export default function App() {
             slowServer={slowServer}
             error={catalogoError}
             onRefresh={() => void cargarCatalogo()}
+            usuario={usuario}
+            busyTituloId={busyTituloId}
+            actionMessage={catalogoMsg}
+            onReservar={(id) => void handleReservar(id)}
+            onAnotarEspera={(id) => void handleAnotarEspera(id)}
           />
         )}
       </main>

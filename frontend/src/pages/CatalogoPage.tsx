@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { TituloConEjemplares } from "../types/api";
+import type { TituloConEjemplares, UsuarioPublico } from "../types/api";
 
 interface CatalogoPageProps {
   titulos: TituloConEjemplares[];
@@ -7,6 +7,11 @@ interface CatalogoPageProps {
   slowServer: boolean;
   error: string | null;
   onRefresh: () => void;
+  usuario?: UsuarioPublico | null;
+  busyTituloId?: number | null;
+  actionMessage?: { type: "ok" | "err"; text: string } | null;
+  onReservar?: (tituloId: number) => void;
+  onAnotarEspera?: (tituloId: number) => void;
 }
 
 export function CatalogoPage({
@@ -15,6 +20,11 @@ export function CatalogoPage({
   slowServer,
   error,
   onRefresh,
+  usuario,
+  busyTituloId,
+  actionMessage,
+  onReservar,
+  onAnotarEspera,
 }: CatalogoPageProps) {
   const [busqueda, setBusqueda] = useState("");
 
@@ -64,6 +74,15 @@ export function CatalogoPage({
         </div>
       )}
 
+      {actionMessage && (
+        <div
+          className={`alert ${actionMessage.type === "ok" ? "alert-ok" : "alert-err"}`}
+          role={actionMessage.type === "ok" ? "status" : "alert"}
+        >
+          {actionMessage.text}
+        </div>
+      )}
+
       {!loading && filtrados.length === 0 && !error && (
         <div className="card">No se encontraron títulos que coincidan con la búsqueda.</div>
       )}
@@ -99,6 +118,34 @@ export function CatalogoPage({
                     {ej.codigo}: {ej.soloEnSala ? "solo en sala" : ej.estado}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {usuario && (
+              <div className="actions-row">
+                {titulo.prestablesDisponibles > 0 ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={busyTituloId === titulo.id}
+                    onClick={() => onReservar?.(titulo.id)}
+                  >
+                    {busyTituloId === titulo.id ? "Reservando..." : "Reservar"}
+                  </button>
+                ) : titulo.prestablesTotales > 0 ? (
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={busyTituloId === titulo.id}
+                    onClick={() => onAnotarEspera?.(titulo.id)}
+                  >
+                    {busyTituloId === titulo.id
+                      ? "Anotando..."
+                      : "Anotarme en lista de espera"}
+                  </button>
+                ) : (
+                  <span className="muted">Disponible únicamente para lectura en sala.</span>
+                )}
               </div>
             )}
           </article>
