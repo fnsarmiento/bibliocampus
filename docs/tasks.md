@@ -148,7 +148,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 ## Etapa 5 — Lista de espera unificada y reparaciones
 
 ### T-13 — Lista de espera, avisos de `24 h` hábiles y expiración en cadena
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `POST /listas-espera`, `GET /mis-listas-espera`, `POST /listas-espera/:id/confirmar` y `POST /listas-espera/:id/rechazar`, más asignación automática por orden de llegada (incluyendo reservas `desactivada` elegibles) al liberarse un ejemplar por devolución/cancelación/vencimiento; expiración de `24 h` hábiles (cancelando definitivamente las `desactivada` vencidas y liberando cupo) para pasar al segundo de la cola.
 - **Cubre:** `RN-19`, `RN-22`, `RN-23`, `RN-24`, `RN-25`, `RN-26`, `RN-27`, `RN-28`; `HU-06`
