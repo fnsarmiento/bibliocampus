@@ -35,3 +35,4 @@ Una decisión por línea. Cada una responde una duda del relevamiento funcional 
 - **D-17:** El registro público crea usuarios con rol «Alumno» por defecto; solo el «Bibliotecario» puede promover a «Docente» o asignar rol «Bibliotecario».
 - **D-18:** El bibliotecario inicial del sistema se crea automáticamente en el arranque usando credenciales de variables de entorno (`INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD`), guardando la contraseña con hash.
 - **D-19:** Cada usuario registrado tiene un email único en el sistema; no pueden registrarse dos cuentas con el mismo email.
+- **D-20:** Los usuarios con rol `Alumno` mantienen un cupo máximo simultáneo de 2 libros pero limitados a 1 ejemplar activo por título (para evitar que acaparen múltiples copias); solo `Docente` y `Bibliotecario` pueden pedir varias copias de un mismo título hasta su cupo de 5.

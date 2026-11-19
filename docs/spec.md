@@ -43,7 +43,7 @@ Sistema web para gestionar el catálogo, las reservas online, los préstamos a d
 - **RN-04:** El registro solicita nombre, email único y contraseña (almacenada como hash, nunca en texto plano) y asigna el rol `Alumno` por defecto.
 - **RN-05:** No pueden existir dos usuarios con el mismo email.
 - **RN-06:** El bibliotecario inicial se crea en el arranque desde variables de entorno (`INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD`); un bibliotecario puede cambiar el rol de otros usuarios (`Alumno`, `Docente`, `Bibliotecario`).
-- **RN-07:** Los alumnos tienen un cupo máximo simultáneo de **2**; los docentes tienen un cupo máximo simultáneo de **5** (y el bibliotecario también puede operar bajo reglas de lector o como admin según su rol de consulta/gestión).
+- **RN-07:** Los alumnos tienen un cupo máximo simultáneo de **2** libros distintos y solo pueden tener **1 ejemplar activo por título** (no pueden reservar ni mantener prestada más de una copia del mismo título simultáneamente); los docentes (y bibliotecarios) tienen un cupo máximo simultáneo de **5** y **sí pueden solicitar múltiples copias** de un mismo título mientras tengan cupo.
 
 ### Cupo, reservas online y días hábiles
 - **RN-08:** El cupo ocupado de un usuario suma: sus reservas confirmadas pendientes de retiro, sus reservas en estado `desactivada`, sus préstamos activos y sus cupos penalizados vigentes.
