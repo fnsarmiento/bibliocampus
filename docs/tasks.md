@@ -74,7 +74,7 @@ Ordenadas por dependencia (no por número de HU). Cada tarea se trabaja de a una
 ## Etapa 2 — Catálogo, ejemplares y feriados
 
 ### T-07 — Catálogo de títulos y ejemplares (`solo_en_sala` y prestables)
-- **Estado:** `[ ]` pendiente
+- **Estado:** `[x]` hecha
 - **Agente:** Tester + Dev backend
 - **Qué hacer:** Implementar `GET /titulos`, `POST /titulos` y `POST /titulos/:tituloId/ejemplares` diferenciando ejemplares prestables y `solo_en_sala`.
 - **Cubre:** `RN-01`, `RN-02`, `RN-03`; `HU-02`, `HU-07`
